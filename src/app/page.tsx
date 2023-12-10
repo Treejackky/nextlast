@@ -3,13 +3,42 @@ import { on } from "events";
 import Image from "next/image";
 import React, { use } from "react";
 import { useEffect, useState } from "react";
-type Props = {};
+type Props = {
+  params:{}
+};
 
-export async function getItem() {
-  const res = await fetch("http://54.179.86.5:8765/v1/item");
-  const data = await res.json();
-  return data;
-}
+// export async function getItem() {
+//   const res = await fetch("http://54.179.86.5:8765/v1/item_prm");
+//   const data = await res.json();
+//   return data;
+// }
+
+
+export async function getItem(params:any) {
+  let id = params;
+  let zlib = require('zlib');
+  let jsn2 = {
+    "OutletID": 80,
+    "TableID": 4,
+  }
+  let item_qr = "item_qr";
+  let body =  zlib.deflateSync(JSON.stringify(jsn2));
+  let res = await fetch("http://54.179.86.5:8765/v1/"+item_qr,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/octet-stream',
+      },
+      body: body.slice(2),
+    }
+     );
+    
+    let resBuffer = await res.arrayBuffer();
+
+    let data =  JSON.parse(zlib.unzipSync(Buffer.from([120, 156, ...new Uint8Array(resBuffer)])));
+
+    return data;
+  }
 
 export async function postItem(cart:any) {
 
@@ -34,14 +63,41 @@ export async function postItem(cart:any) {
     };
   }
 
-  export async function getOrder() {
-    const res = await fetch("http://54.179.86.5:8765/v1/order");
-    const data_ord = await res.json();
-    console.log(data_ord);
-    return  data_ord;
+  export async function getOrder(TableID:any , OutletID:any) {
+    let zlib = require('zlib');
+    let cart_ord = {
+      'OutletID': OutletID,
+      'TableID': TableID,
+    }
+    let body =  zlib.deflateSync(JSON.stringify(cart_ord));
+   let res = await fetch("http://54.179.86.5:8765/v1/order",
+     {
+       method: 'POST',
+       headers: {
+         'content-type': 'application/octet-stream',
+       },
+       body: body.slice(2),
+     }
+      );
+     
+     let resBuffer = await res.arrayBuffer();
+ 
+     let data_ord =   JSON.parse(zlib.unzipSync(Buffer.from([120, 156, ...new Uint8Array(resBuffer)])));
+    
+     return data_ord;
   }
 
-export default function Home({}: Props) {
+  // export async function getOrder() {
+  //   const res = await fetch("http://54.179.86.5:8765/v1/order");
+  //   const data_ord = await res.json();
+  //   console.log(data_ord);
+  //   return  data_ord;
+  // }
+
+  // 'OutletID': '70',
+  // 'TableID': '4',
+
+export default function Home({params}: Props) {
   const isSushi = ["51306", "51307", "51321", "51323","51324",
 , "51325", "51327", "51328", "515020"]
 const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
@@ -49,7 +105,7 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   const isSeafood = ["51337", "51338", "51339", "514008", "79152",
   "74118", "74119", "74129"]
   const isDesert = ["51347", "51348", "51350", "51351", "5973138"]
-  const isVegeis  =["75101", "75102", "75103", "75104", "75106", "75109", "75110"
+  const isVegeis  = ["75101", "75102", "75103", "75104", "75106", "75109", "75110"
   , "75111", "75125", "79167"]
   const isNoodle = ["74116", "75115", "75116", "75117"]
 
@@ -59,6 +115,8 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   //   "76122", "76123", "76133", "76138", "76143", "77101", "77102",
   // "77108", "7107", "77109", "77111", "77128", "77133"]
   // const isDrink = ["78127", "78128", "78129", "79133", "79131", "79130","79129"]
+  
+  
   const [data, setData] = useState<any>([]);
   const [order, setOrder] = useState<any>([]);
   const [dataSushi, setDataSushi] = useState<any>([]);
@@ -68,27 +126,33 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   const [dataVegeis, setDataVegeis] = useState<any>([]);
   const [dataNoodle, setDataNoodle] = useState<any>([]);
   const [dataFilter, setDataFilter] = useState<any>([]);
+  const [OutleID, setOutletID] = useState<any>(0);
+  const [TableID, setTableID] = useState<any>(0);
+  const [pkg, setPkg] = useState<any>("");
 
   useEffect(() => {
-    getItem().then((data) => {
-      setData(data);
+    getItem(params).then((data) => {
+      console.log(data);
+      setOutletID(data.OutletID);
+      setTableID(data.TableID);
+      setData(data.items);
+      setPkg(data.Package);
     });
   }, []);
 
-  useEffect(() => {
-    getOrder().then((orderData) => {
-      setOrder(orderData);
-    }).catch(error => {
-      console.error('Error fetching order data:', error);
-    });
-  }, []);
+
+  
+  // useEffect(() => {
+  //   getOrder().then((data) => {
+  //     setOrder(data.orders);
+  //     console.log(data.orders);
+  //   })
+  // }, []);
 
   // useEffect(() => {
-  //   getOrder().then((order) => {
-  //     setOrder(order);
-  //   });
-  // }, []);
-  
+  //   console.log(order);
+  // }, [order]);
+
   
   // FILTER DATA
   useEffect(() => {
@@ -116,7 +180,8 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
     setDataSeafood(seafood);
     setDataBeef(beef);
     setDataSushi(sushi);
-    setDataFilter([...dataSushi, ...dataBeef, ...dataSeafood,... dataDesert, ...dataVegeis, ...dataNoodle]);
+
+    setDataFilter([...dataSushi, ...dataBeef, ...dataSeafood, ...dataVegeis, ...dataNoodle, ...dataDesert,]);
   }, [data]);
 
 
@@ -124,13 +189,11 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   const [cart, setCart] = useState<any>([]);
 
   useEffect(() => {
-   
     let cart_local = localStorage.getItem("cart");
      if(cart_local){
       setCart(JSON.parse(cart_local!));
-      console.log(cart_local);   
+      // console.log(cart_local);   
     }
-  
   },[]);
 
   const addToCart = (item :any, countItem:any) => {
@@ -146,27 +209,26 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
       return updatedCart;
     } else {
        let newItem = {
-        'OutletID': '1.10',
-        'TableID': '14',
+        'OutletID': OutleID,
+        'TableID': TableID,
         'ItemID': item.ItemID,
         'ItemCode': item.ItemCode,
         'ItemSupp': item.Name,
         'UnitPrice': item.UnitPrice,
         'Disc': item.Disc,
-        'Size': '1',
+        'Size': item.Size,
         'SvcExcl': item.SvcExcl,
         'TaxExcl': item.TaxExcl,
         'GrpMaster': item.GrpMaster,
         'GrpSub': item.GrpSub,
         'Quantity': countItem,
-        'CashierID': '1',
+        // 'CashierID': 1,
       };
       return [...prevCart, newItem];
     }
     });
   };
   
-
   useEffect(() => {
     if(cart.length > 0){
       localStorage.setItem("cart", JSON.stringify(cart!));
@@ -188,7 +250,6 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   
   const Menu = () => {
     // {"_id":"655fb378b07c32a55a5e0ba3","ItemID":"8869","Disc":"N","GrpMaster":"7","GrpSub":"704","ItemCode":"70406","Name":"C เนื้อริบอาย (กก)","SvcExcl":"X","TaxExcl":"Y","UnitPrice":""}
-  
     return (
       <>
       <nav>
@@ -206,7 +267,8 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
             key={index} 
             onClick={() => handleItemClick(item)}
           >
-            {item.Name}
+            <div>{item.GrpSub}</div>
+
             <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${item.ItemCode}.jpg`} alt="Imgfood" />
           </button>
         ))}
@@ -232,7 +294,6 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
             </div>
           </div>
         )}
-
       </section>
       </>
     );
@@ -280,16 +341,17 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
     </div>
   </div>
 </>
-
     );
   };
   
 
   const Order = () => {
-  
     return (
       <>
-         {order.map((item:any, index:any) => (
+     {/* {console.log("ordersssssssssssssssssssss")}
+     {console.log(order)} */}
+   
+        {order.map((item:any, index:any) => (
         <div className="order-item" key={index}>
           <div className="order-header">
           <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${item.ItemCode}.jpg`} alt="Imgfood" />
@@ -300,7 +362,7 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
              <div className="order-total">จำนวนทั้งหมด: {item.Quantity}</div>
           </div>
         </div>
-         ))}
+         ))} 
       </>
     );
   }
@@ -344,11 +406,13 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
       return setPage(2);
     }
     else if(e.target.id == "order"){
-      getOrder().then((orderData) => {
-        setOrder(orderData);
+      getOrder(TableID,OutleID).then((orderData) => {
+        setOrder(orderData.orders);
+        console.log(order);
       }).catch(error => {
         console.error('Error fetching order data:', error);
       });
+
       return setPage(3);
     }
   }

@@ -52,8 +52,10 @@ nav{
   height: 6.5vh;
   top: 0;
   align-items: center;
-  background-color: #FFCC2E;
+  /* background-color: #FFCC2E; */
+  background-color: white;
   display: flex;
+  font-weight: bold;
   justify-content: space-around;
   white-space: nowrap; 
   overflow-y: hidden;
@@ -61,15 +63,19 @@ nav{
 
 nav div{
   text-decoration: none;
-  color: white;
+  color: black;
 }
 
 .item {
-  flex: 1 0 auto;
+  /* flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   margin: 1rem;
-  padding: 0.5rem;
+  padding: 0.5rem; */
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  justify-content: left;
+  font-weight: bold;
   border-bottom: 0.5px solid #ccc;
 }
 
@@ -84,21 +90,12 @@ nav div{
   flex-direction: column;
 }
 
-.main-content img{
-  width: 25%;
-  height: 25%;
+.item img{
+  width: 20%;
+  height: 20%;
   object-fit: cover;
 }
 
-.main-content .overlay {
-  position: fixed; /* หรือ absolute ตามความต้องการ */
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  /* background-color: rgba(0, 0, 0, 0.5); 
-  z-index: 1000; */
-}
 
 .modal {
   position: fixed;
@@ -115,13 +112,13 @@ nav div{
   box-shadow: 0 0 2px gray;
 }
 
-.modal-header, .modal-footer {
+.modal-header{
   padding: 10px 0;
   border-bottom: 1px solid #e5e5e5;
 }
 
 .modal-footer {
-  border-top: 1px solid #e5e5e5;
+  /* border-top: 1px solid #e5e5e5; */
   text-align: right;
   display: flex;
   justify-content: space-around;
@@ -134,7 +131,7 @@ nav div{
 
 .modal-img img {
   width: 80%;
-  height: auto; /* changed to auto for proper aspect ratio */
+  height: auto;  
   object-fit: cover;
 }
 
