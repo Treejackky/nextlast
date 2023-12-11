@@ -1,7 +1,7 @@
 "use client";
 import { on } from "events";
 import Image from "next/image";
-import React, { use } from "react";
+import React, { use, useRef } from "react";
 import { useEffect, useState } from "react";
 type Props = {
   params:{}
@@ -128,6 +128,8 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   const [dataFilter, setDataFilter] = useState<any>([]);
   const [OutleID, setOutletID] = useState<any>(0);
   const [TableID, setTableID] = useState<any>(0);
+
+
   const [pkg, setPkg] = useState<any>("");
 
   useEffect(() => {
@@ -248,32 +250,90 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
     setOverlay(true);
   };
   
+
+  const [activeCategory, setActiveCategory] = useState('');
+  const sushiRef = useRef(null);
+  const beefRef = useRef(null);
+  const seafoodRef = useRef(null);
+  const desertRef = useRef(null);
+  const vegeisRef = useRef(null);
+  const noodleRef = useRef(null);
+
+ 
+  const [overlay5 , setOverlay5] = useState(false);
+
+
   const Menu = () => {
     // {"_id":"655fb378b07c32a55a5e0ba3","ItemID":"8869","Disc":"N","GrpMaster":"7","GrpSub":"704","ItemCode":"70406","Name":"C เนื้อริบอาย (กก)","SvcExcl":"X","TaxExcl":"Y","UnitPrice":""}
+   
+    const checkCategoryInView = () => {
+      const checkRefInView = (ref:any, category:any) => {
+        if (ref.current) {
+          const pos = ref.current.getBoundingClientRect();
+          if (pos.top >= 0 && pos.bottom <= window.innerHeight) {
+            setActiveCategory(category);
+          }
+        }
+      };
+  
+      checkRefInView(sushiRef, 'sushi');
+      checkRefInView(beefRef, 'beef');
+      checkRefInView(seafoodRef, 'seafood');
+      checkRefInView(vegeisRef, 'vegies');
+      checkRefInView(noodleRef, 'noodle');
+      checkRefInView(desertRef, 'desert');
+    };
+  
+    useEffect(() => {
+      window.addEventListener('scroll', checkCategoryInView);
+      return () => {
+        window.removeEventListener('scroll', checkCategoryInView);
+      };
+    }, []);
+
+    const scrollToCategory = (ref:any) => {
+      if (ref.current) {
+        // ref.current.scrollIntoView({ behavior: 'smooth' });
+       }
+    };
+    
     return (
       <>
       <nav>
-        <div>ซูชิ</div>
-        <div>เนื้อสัตว์</div>
-        <div >ทะเล</div>
-        <div>ผัก</div>
-        <div>เส้น</div>
-        <div>ของหวาน</div>
+      <div onClick={() => scrollToCategory(sushiRef)} className={activeCategory === 'sushi' ? 'active' : ''}>ซูชิ</div>
+        <div onClick={() => scrollToCategory(desertRef)} className={activeCategory === 'beef' ? 'active' : ''}>เนื้อสัตว์</div>
+        <div onClick={()=> scrollToCategory(beefRef)} className={activeCategory === 'seafood' ? 'active' : ''}>ทะเล</div>
+        <div onClick={()=> scrollToCategory(seafoodRef)} className={activeCategory === 'vegies' ? 'active' : ''}>ผัก</div>
+        <div onClick={()=> scrollToCategory(isNoodle)} className={activeCategory === 'noodle' ? 'active' : ''}>เส้น</div>
+        <div onClick={()=> scrollToCategory(vegeisRef)} className={activeCategory === 'desert' ? 'active' : ''}>ของหวาน</div>
        </nav>
-       <section>
-        {dataFilter.map((item:any, index :any) => (
-          <button 
-            className="item" 
+       <section>     
+        {dataFilter.map((item:any, index :any) => (          
+           <>
+            <div ref={isSushi.includes(item.ItemCode) 
+              ? sushiRef : isBeef.includes(item.ItemCode) 
+              ? beefRef : isSeafood.includes(item.ItemCode) 
+              ? seafoodRef : isVegeis.includes(item.ItemCode) 
+              ? vegeisRef : isNoodle.includes(item.ItemCode) 
+              ? noodleRef : isDesert.includes(item.ItemCode) 
+              ? desertRef : null
+            }
+              ></div>
+            <button 
+            className="item"
             key={index} 
-            onClick={() => handleItemClick(item)}
-          >
-            <div>{item.GrpSub}</div>
-
+            onClick={() => handleItemClick(item)}>
+            <div className="v2">
             <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${item.ItemCode}.jpg`} alt="Imgfood" />
+            <div className="title"><p>{item.Name}</p><p>0.00฿</p></div>
+            </div>
+            <button className="but-ton">+</button>
           </button>
+           </> 
         ))}
        {overlay && selectedItem && (
-          <div className="modal">
+          <div className="overlay">
+            <div className="modal">
             <div className="modal-header">
               <div className="name">{selectedItem.Name}</div>
             </div>
@@ -285,7 +345,6 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
               <button className="count-btn" onClick={() => setCountItem(prevCount => prevCount >1 ? prevCount - 1 : 1)}>-</button>
                 <span>{countItem}</span>
                 <button className="count-btn" onClick={() => setCountItem(prevCount => prevCount + 1)}>+</button>
-
               </div>
             </div>
             <div className="modal-footer">
@@ -293,11 +352,31 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
               <button className="modal-action" onClick={() => [ setOverlay(false), addToCart(selectedItem, countItem), setCountItem(1)]}>เพิ่มในตะกร้า</button>
             </div>
           </div>
+          </div>
         )}
+        {overlay5 && cart.length > 0  &&(
+              <div className="dialog-overlay">
+              <div className="dialogv2">
+                <p>คุณมีสินค้าอยู่ในตะกร้า และ <br/> ยังไม่ได้กดสั่งอาหาร?</p>
+                <div className="rowd">
+                </div>
+                <div className="dialog-actionsv2">
+                   <button onClick={()=>[
+                        setOverlay5(false),
+                  ]}>ตกลง</button>
+                </div>
+              </div>
+            </div>              
+            )}
       </section>
       </>
     );
   }
+
+
+  const [overlay3, setOverlay3] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState<any>(null);
+  const [overlay4 , setOverlay4] = useState(false);
 
   const Cart = () => {
     const incrementQuantity = (itemCode:any) => {
@@ -306,40 +385,87 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
       ));
     };
   
-    const decrementQuantity = (itemCode: any) => {
-      setCart(cart.map((item: { ItemCode: any; Quantity: number; }) =>
-        item.ItemCode === itemCode && item.Quantity > 1 ? { ...item, Quantity: item.Quantity - 1 } : item
-      ));
+    const decrementQuantity = (itemCode:any) => {
+      setCart(cart.map((item:any) =>
+        item.ItemCode === itemCode ? { ...item, Quantity: item.Quantity - 1 } : item
+      ).filter((item:any) => item.Quantity > 0));
+    };
+  
+    const confirmAndRemoveItem = (itemCode:any) => {
+      const item = cart.find((item :any)=> item.ItemCode === itemCode);
+      if (item) {
+        setItemToRemove(item); // Store the entire item object
+        setOverlay3(true);
+      }
+    };
+  
+    const handleRemoveConfirmed = () => {
+      if (itemToRemove) {
+        setCart(cart.filter((item:any) => item.ItemCode !== itemToRemove.ItemCode));
+      }
+      setOverlay3(false);
+      setItemToRemove(null);  
     };
   
     return (
       <>
+      <div className="header-page2">
+        <button onClick={() => [setPage(1), setOverlay5(true)]}>x</button>
+       <div> <h1>ตะกร้า</h1> <p>ข้อมูล ณ เวลา {(new Date()).toLocaleTimeString()}</p></div>
+        </div>
   <div className="cart-container">
-    {cart.map((item:any, index:any) => (
-      <div className="cart-item" key={index}>
-       <div className="cart-header">
-       {item.ItemSupp}
-        <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${item.ItemCode}.jpg`} alt="Imgfood" />
-        </div>
-        <div className="cart-body">
-          <div className="quantity-controls">
-            <button onClick={() => decrementQuantity(item.ItemCode)} aria-label="Decrease quantity">-</button>
-            <span>{item.Quantity}</span>
-            <button onClick={() => incrementQuantity(item.ItemCode)} aria-label="Increase quantity">+</button>
+    {cart.map((item:any, index :any) => (
+          <button 
+            className="itemv2" 
+            key={index} >
+            <div className="v2">
+            <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${item.ItemCode}.jpg`} alt="Imgfood" />
+            <div className="title"><p>{item.ItemSupp}</p><p>0.00฿</p></div>
+            </div>
+            <div className="cart-body">
+            <div className="quantity-controls">
+            <button onClick={() => item.Quantity === 1 ? confirmAndRemoveItem(item.ItemCode) : decrementQuantity(item.ItemCode)} aria-label="Decrease quantity">-</button>
+              <span>{item.Quantity}</span>
+              <button onClick={() => incrementQuantity(item.ItemCode)} aria-label="Increase quantity">+</button>
+            </div>
           </div>
-        </div>
-      </div>
-    ))}
+          </button>
+          
+        ))}
+            {overlay3  && itemToRemove && (
+              <div className="dialog-overlay">
+                <div className="dialog">
+                  <p>คุณต้องการยกเลิกเมนูนี้ใช่หรือไม่?</p>
+                  <div className="rowd">
+                  <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${itemToRemove.ItemCode}.jpg`} alt="Item Image" />
+                  <p>{itemToRemove.ItemSupp} <br/> ราคา: {itemToRemove.UnitPrice != "" ? itemToRemove.UnitPrice : 0 }฿</p>
+                  </div>
+                  <div className="dialog-actions">
+                    <button onClick={() => setOverlay3(false)}>ยกเลิก</button>
+                    <button onClick={handleRemoveConfirmed}>ตกลง</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {overlay4 && (
+              <div className="dialog-overlay">
+              <div className="dialog">
+                <p>คุณต้องการสั่งอาหารทั้งหมดนี้ใช่หรือไม่?</p>
+                <div className="rowd">
+                </div>
+                <div className="dialog-actions">
+                  <button onClick={() => setOverlay4(false)}>ยกเลิก</button>
+                  <button onClick={()=>[
+                       postItem(cart),
+                        setCart([]),
+                        setOverlay4(false),
+                  ]}>ตกลง</button>
+                </div>
+              </div>
+            </div>              
+            )}
   </div>
-  <div className="parent-container">
-    <div className="cart-order">
-      <button onClick={() =>[
-        postItem(cart),
-        setCart([]),
-        localStorage.removeItem("cart"),
-      ]}>สั่ง {cart.length} รายการ</button>
-    </div>
-  </div>
+  {}
 </>
     );
   };
@@ -348,21 +474,22 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   const Order = () => {
     return (
       <>
-     {/* {console.log("ordersssssssssssssssssssss")}
-     {console.log(order)} */}
-   
-        {order.map((item:any, index:any) => (
-        <div className="order-item" key={index}>
-          <div className="order-header">
-          <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${item.ItemCode}.jpg`} alt="Imgfood" />
-
-            <div className="order-id">{item.ItemSupp}</div>
-          </div>
-          <div className="order-body">
-             <div className="order-total">จำนวนทั้งหมด: {item.Quantity}</div>
-          </div>
-        </div>
-         ))} 
+        <nav className="header-page2">
+          <button onClick={() => setPage(1)}>x</button>
+        <div> <h1>รายการที่สั่ง</h1> <p>ข้อมูล ณ เวลา {(new Date()).toLocaleTimeString()}</p></div>
+          </nav>
+        {order.map((item:any, index :any) => (
+          
+          <button 
+            className="itemv2" 
+            key={index} >
+            <div className="v2">
+            <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/${item.ItemCode}.jpg`} alt="Imgfood" />
+            <div className="title"><p>{item.ItemSupp}</p><p>0.00฿</p></div>
+            </div>
+            <button className="but-tonv2"><p>{new Date(item.PostTime).toLocaleString()}</p></button>
+          </button>
+        ))}
       </>
     );
   }
@@ -421,14 +548,60 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   const isHeader = () => {
     if(page == 1){
       return(
-        <>
-          <img src="https://scontent.fbkk5-7.fna.fbcdn.net/v/t39.30808-6/285740555_3164288673886606_4866148165288431653_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=3635dc&_nc_eui2=AeEaTfrd9vfKuS-Ax69h84RpEJ_GGlsl-CEQn8YaWyX4IWBOWot2UpYR-3xZSyyPNmi5NxDLznwh2EQR4ckfGURm&_nc_ohc=ditpKHDmPFoAX-aRrc6&_nc_ht=scontent.fbkk5-7.fna&oh=00_AfCyL4bmRh3lvI7QxeRXeIrIItyhGlL2o_Bi-XVOYZNTwQ&oe=657A440D" alt="logo" />
-        </>
+      <>
+        <button className="ord-header">โต๊ {TableID} | คุณ N</button>
+        <div className="order-list">
+        <button id="order" onClick={()=>{   
+        getOrder(TableID,OutleID).then((orderData) => {
+        setOrder(orderData.orders);
+        console.log(order);
+      }).catch(error => {
+        console.error('Error fetching order data:', error);
+      });setPage(3)}}>
+        <img src="cooking.png"/></button>
+        </div>
+       <img src="https://scontent.fbkk5-7.fna.fbcdn.net/v/t39.30808-6/285740555_3164288673886606_4866148165288431653_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=3635dc&_nc_eui2=AeEaTfrd9vfKuS-Ax69h84RpEJ_GGlsl-CEQn8YaWyX4IWBOWot2UpYR-3xZSyyPNmi5NxDLznwh2EQR4ckfGURm&_nc_ohc=ditpKHDmPFoAX-aRrc6&_nc_ht=scontent.fbkk5-7.fna&oh=00_AfCyL4bmRh3lvI7QxeRXeIrIItyhGlL2o_Bi-XVOYZNTwQ&oe=657A440D" alt="logo" />
+      </>
+       
       )
     }else if(page == 2){
       return <></>
+    }else if(page == 3){
+      return <></>
     }
   }
+
+
+ const isBar = () => {
+  if(page == 1 && cart.length > 0){
+    return(
+    <footer>
+     <div className="cart-orderv2">
+      <button id="cart" onClick={isChanged}> รายการในตะกร้า {cart.length} รายการ</button>
+      </div>
+      </footer>
+    )
+  }
+  else if(page == 2 && cart.length > 0){
+    return(
+      <footer>
+      <div className="cart-order">
+      <button onClick={() =>[
+        setOverlay4(true),
+        // postItem(cart),
+        // setCart([]),
+        localStorage.removeItem("cart"),
+      ]}>สั่ง {cart.length} รายการ</button>
+      </div>
+      </footer>
+      
+    )
+  } else if(page == 3){
+    return(
+      <div className="total-price"><p>ราคาทั้งหมด</p><p>0.00฿</p></div>
+    )
+  }
+ }
 
   const isFooter = () => {
     return(
@@ -448,9 +621,10 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
      <div className="main-content">
      {isPage()}
      </div>
-     <footer>
+     {isBar()}
+     {/* <footer>
      {isFooter()}    
-     </footer>
+     </footer> */}
     </>
   );
 }
