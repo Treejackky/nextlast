@@ -128,16 +128,25 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   const [dataFilter, setDataFilter] = useState<any>([]);
   const [OutleID, setOutletID] = useState<any>(0);
   const [TableID, setTableID] = useState<any>(0);
+  const [WaiterID, setWaiterID] = useState<any>(0);
 
 
   const [pkg, setPkg] = useState<any>("");
 
   useEffect(() => {
     getItem(params).then((data) => {
+      console.log(data);
+      if(data.err){
+        // alert(data.err);
+        // window.location.href = "/";
+      }else{
       setOutletID(data.OutletID);
       setTableID(data.TableID);
       setData(data.items);
       setPkg(data.Package);
+      setWaiterID(data.WaiterID);
+      }
+      
      });
   }, []);
 
@@ -146,17 +155,6 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
   }, [data]);
 
 
-  
-  // useEffect(() => {
-  //   getOrder().then((data) => {
-  //     setOrder(data.orders);
-  //     console.log(data.orders);
-  //   })
-  // }, []);
-
-  // useEffect(() => {
-  //   console.log(order);
-  // }, [order]);
 
   
   // FILTER DATA
@@ -187,7 +185,8 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
     setDataSushi(sushi);
    
     setDataFilter([...dataSushi, ...dataBeef, ...dataSeafood, ...dataVegeis, ...dataNoodle, ...dataDesert,]);
-  }, [data]);
+  
+  }, [data, dataSushi, dataBeef, dataSeafood, dataVegeis, dataNoodle, dataDesert]);
 
 
 
@@ -227,7 +226,7 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
         'GrpMaster': item.GrpMaster,
         'GrpSub': item.GrpSub,
         'Quantity': countItem,
-        // 'CashierID': 1,
+        'WaiterID': WaiterID,
       };
       return [...prevCart, newItem];
     }
@@ -302,10 +301,10 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
         // if (pos.top >= 0 && pos.bottom <= (window.innerHeight/2 )) {
         //   setActiveCategory(category);
         // }
-        window.scrollTo({
-          top: pos.top + window.scrollY - 100,
-          behavior: 'smooth',
-        });
+        // window.scrollTo({
+        //   top: pos.top + window.scrollY - 100,
+        //   behavior: 'smooth',
+        // });
       }
     };
     
@@ -574,7 +573,6 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
         </div>
        <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/header.jpg`} alt="logo" />
       </>
-       
       )
     }else if(page == 2){
       return <></>
