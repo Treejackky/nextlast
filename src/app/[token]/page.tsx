@@ -1,7 +1,7 @@
 "use client";
 import { on } from "events";
 import Image from "next/image";
-import React, { use, useRef } from "react";
+import React, { useRef } from "react";
 import { useEffect, useState } from "react";
 type Props = {
   params:{}
@@ -13,14 +13,15 @@ type Props = {
 //   return data;
 // }
 
-
 export async function getItem(params:any) {
-  let id = params;
+  let id = params.token;
   let zlib = require('zlib');
   let jsn2 = {
     "OutletID": 80,
     "TableID": 4,
+    "token": `${id}`,
   }
+  console.log(jsn2);
   let item_qr = "item_qr";
   let body =  zlib.deflateSync(JSON.stringify(jsn2));
   let res = await fetch("http://54.179.86.5:8765/v1/"+item_qr,
@@ -93,7 +94,6 @@ export async function postItem(cart:any) {
   //   console.log(data_ord);
   //   return  data_ord;
   // }
-
   // 'OutletID': '70',
   // 'TableID': '4',
 
@@ -134,13 +134,16 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
 
   useEffect(() => {
     getItem(params).then((data) => {
-      console.log(data);
       setOutletID(data.OutletID);
       setTableID(data.TableID);
       setData(data.items);
       setPkg(data.Package);
-    });
+     });
   }, []);
+
+  useEffect(() => {
+
+  }, [data]);
 
 
   
@@ -182,7 +185,7 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
     setDataSeafood(seafood);
     setDataBeef(beef);
     setDataSushi(sushi);
-
+   
     setDataFilter([...dataSushi, ...dataBeef, ...dataSeafood, ...dataVegeis, ...dataNoodle, ...dataDesert,]);
   }, [data]);
 
@@ -270,7 +273,7 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
       const checkRefInView = (ref:any, category:any) => {
         if (ref.current) {
           const pos = ref.current.getBoundingClientRect();
-          if (pos.top >= 0 && pos.bottom <= window.innerHeight) {
+          if (pos.top >= 0 && pos.bottom <= (window.innerHeight/2 )) {
             setActiveCategory(category);
           }
         }
@@ -293,19 +296,28 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
 
     const scrollToCategory = (ref:any) => {
       if (ref.current) {
-        // ref.current.scrollIntoView({ behavior: 'smooth' });
-       }
+        const pos = ref.current.getBoundingClientRect();
+        console.log(pos);
+        // const category = ref.current.id;
+        // if (pos.top >= 0 && pos.bottom <= (window.innerHeight/2 )) {
+        //   setActiveCategory(category);
+        // }
+        window.scrollTo({
+          top: pos.top + window.scrollY - 100,
+          behavior: 'smooth',
+        });
+      }
     };
     
     return (
-      <>
+      <> 
       <nav>
       <div onClick={() => scrollToCategory(sushiRef)} className={activeCategory === 'sushi' ? 'active' : ''}>ซูชิ</div>
-        <div onClick={() => scrollToCategory(desertRef)} className={activeCategory === 'beef' ? 'active' : ''}>เนื้อสัตว์</div>
-        <div onClick={()=> scrollToCategory(beefRef)} className={activeCategory === 'seafood' ? 'active' : ''}>ทะเล</div>
-        <div onClick={()=> scrollToCategory(seafoodRef)} className={activeCategory === 'vegies' ? 'active' : ''}>ผัก</div>
+        <div onClick={() => scrollToCategory(beefRef)} className={activeCategory === 'beef' ? 'active' : ''}>เนื้อสัตว์</div>
+        <div onClick={()=> scrollToCategory(seafoodRef)} className={activeCategory === 'seafood' ? 'active' : ''}>ทะเล</div>
+        <div onClick={()=> scrollToCategory(vegeisRef)} className={activeCategory === 'vegies' ? 'active' : ''}>ผัก</div>
         <div onClick={()=> scrollToCategory(isNoodle)} className={activeCategory === 'noodle' ? 'active' : ''}>เส้น</div>
-        <div onClick={()=> scrollToCategory(vegeisRef)} className={activeCategory === 'desert' ? 'active' : ''}>ของหวาน</div>
+        <div onClick={()=> scrollToCategory(desertRef)} className={activeCategory === 'desert' ? 'active' : ''}>ของหวาน</div>
        </nav>
        <section>     
         {dataFilter.map((item:any, index :any) => (          
@@ -554,13 +566,13 @@ const isBeef = ["51317", "51318", "51320", "74134", "51353", "514005" ,"514007",
         <button id="order" onClick={()=>{   
         getOrder(TableID,OutleID).then((orderData) => {
         setOrder(orderData.orders);
-        console.log(order);
+        // console.log(order);
       }).catch(error => {
         console.error('Error fetching order data:', error);
       });setPage(3)}}>
         <img src="cooking.png"/></button>
         </div>
-       <img src="https://scontent.fbkk5-7.fna.fbcdn.net/v/t39.30808-6/285740555_3164288673886606_4866148165288431653_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=3635dc&_nc_eui2=AeEaTfrd9vfKuS-Ax69h84RpEJ_GGlsl-CEQn8YaWyX4IWBOWot2UpYR-3xZSyyPNmi5NxDLznwh2EQR4ckfGURm&_nc_ohc=ditpKHDmPFoAX-aRrc6&_nc_ht=scontent.fbkk5-7.fna&oh=00_AfCyL4bmRh3lvI7QxeRXeIrIItyhGlL2o_Bi-XVOYZNTwQ&oe=657A440D" alt="logo" />
+       <img src={`https://posimg.s3.ap-southeast-1.amazonaws.com/header.jpg`} alt="logo" />
       </>
        
       )
